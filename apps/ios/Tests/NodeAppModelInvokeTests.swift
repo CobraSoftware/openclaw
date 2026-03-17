@@ -240,6 +240,19 @@ private final class MockWatchMessagingService: @preconcurrency WatchMessagingSer
                 operatorHealthy: false))
     }
 
+    @Test @MainActor func disconnectClearsBackgroundReconnectState() {
+        let appModel = NodeAppModel()
+        appModel.setScenePhase(.background)
+        #expect(appModel._test_isReconnectAfterBackgroundArmed())
+        #expect(appModel._test_hasBackgroundReconnectLease())
+
+        appModel.disconnectGateway()
+
+        #expect(!appModel._test_isReconnectAfterBackgroundArmed())
+        #expect(!appModel._test_isBackgroundReconnectSuppressed())
+        #expect(!appModel._test_hasBackgroundReconnectLease())
+    }
+
     @Test @MainActor func handleInvokeA2UICommandsFailWhenHostMissing() async throws {
         let appModel = NodeAppModel()
 

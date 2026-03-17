@@ -3045,6 +3045,18 @@ extension NodeAppModel {
             nodeConnected: nodeConnected,
             operatorHealthy: operatorHealthy)
     }
+
+    func _test_isReconnectAfterBackgroundArmed() -> Bool {
+        self.reconnectAfterBackgroundArmed
+    }
+
+    func _test_isBackgroundReconnectSuppressed() -> Bool {
+        self.backgroundReconnectSuppressed
+    }
+
+    func _test_hasBackgroundReconnectLease() -> Bool {
+        self.backgroundReconnectLeaseUntil != nil
+    }
 }
 #endif
 // swiftlint:enable type_body_length file_length

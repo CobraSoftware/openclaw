@@ -323,7 +323,7 @@ final class NodeAppModel {
             self.isBackgrounded = false
             self.endBackgroundConnectionGracePeriod(reason: "scene_foreground")
             self.clearBackgroundReconnectSuppression(reason: "scene_foreground")
-            if self.operatorConnected {
+            if phase == .active, self.operatorConnected {
                 self.startGatewayHealthMonitor()
             }
             if phase == .active {

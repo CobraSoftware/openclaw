@@ -358,11 +358,15 @@ final class NodeAppModel {
                         // If node dropped while operator stayed up, force a full reconnect so invoke paths recover.
                         if operatorWasConnected && nodeWasConnected {
                             // Prefer keeping the connection if it's healthy; reconnect only when needed.
-                            let healthy = (try? await self.operatorGateway.request(
+                            let operatorHealthy = (try? await self.operatorGateway.request(
                                 method: "health",
                                 paramsJSON: nil,
                                 timeoutSeconds: 2)) != nil
-                            if healthy {
+                            if Self.shouldReuseForegroundSocketPair(
+                                operatorConnected: operatorWasConnected,
+                                nodeConnected: nodeWasConnected,
+                                operatorHealthy: operatorHealthy)
+                            {
                                 await MainActor.run { self.startGatewayHealthMonitor() }
                                 return
                             }
@@ -1737,6 +1741,10 @@ extension NodeAppModel {
         self.gatewayAutoReconnectEnabled = false
         self.gatewayPairingPaused = false
         self.gatewayPairingRequestId = nil
+        self.reconnectAfterBackgroundArmed = false
+        self.backgroundedAt = nil
+        self.endBackgroundConnectionGracePeriod(reason: "manual_disconnect")
+        self.clearBackgroundReconnectSuppression(reason: "manual_disconnect")
         self.nodeGatewayTask?.cancel()
         self.nodeGatewayTask = nil
         self.operatorGatewayTask?.cancel()
@@ -1766,6 +1774,14 @@ extension NodeAppModel {
 }
 
 private extension NodeAppModel {
+    static func shouldReuseForegroundSocketPair(
+        operatorConnected: Bool,
+        nodeConnected: Bool,
+        operatorHealthy: Bool) -> Bool
+    {
+        operatorConnected && nodeConnected && operatorHealthy
+    }
+
     func prepareForGatewayConnect(url: URL, stableID: String) {
         self.gatewayAutoReconnectEnabled = true
         self.gatewayPairingPaused = false
@@ -3017,6 +3033,17 @@ extension NodeAppModel {
 
     static func _test_currentDeepLinkKey() -> String {
         self.expectedDeepLinkKey()
+    }
+
+    static func _test_shouldReuseForegroundSocketPair(
+        operatorConnected: Bool,
+        nodeConnected: Bool,
+        operatorHealthy: Bool) -> Bool
+    {
+        self.shouldReuseForegroundSocketPair(
+            operatorConnected: operatorConnected,
+            nodeConnected: nodeConnected,
+            operatorHealthy: operatorHealthy)
     }
 }
 #endif

@@ -214,6 +214,32 @@ private final class MockWatchMessagingService: @preconcurrency WatchMessagingSer
         #expect(appModel.screen.urlString.isEmpty)
     }
 
+    @Test @MainActor func foregroundSocketReuseRequiresBothSessionsAndHealthyOperator() {
+        #expect(
+            NodeAppModel._test_shouldReuseForegroundSocketPair(
+                operatorConnected: true,
+                nodeConnected: true,
+                operatorHealthy: true))
+    }
+
+    @Test @MainActor func foregroundSocketReuseRejectsSplitOrUnhealthyState() {
+        #expect(
+            !NodeAppModel._test_shouldReuseForegroundSocketPair(
+                operatorConnected: true,
+                nodeConnected: false,
+                operatorHealthy: true))
+        #expect(
+            !NodeAppModel._test_shouldReuseForegroundSocketPair(
+                operatorConnected: false,
+                nodeConnected: true,
+                operatorHealthy: true))
+        #expect(
+            !NodeAppModel._test_shouldReuseForegroundSocketPair(
+                operatorConnected: true,
+                nodeConnected: true,
+                operatorHealthy: false))
+    }
+
     @Test @MainActor func handleInvokeA2UICommandsFailWhenHostMissing() async throws {
         let appModel = NodeAppModel()
 

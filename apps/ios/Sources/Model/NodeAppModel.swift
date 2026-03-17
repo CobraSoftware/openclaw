@@ -353,7 +353,10 @@ final class NodeAppModel {
                     Task { [weak self] in
                         guard let self else { return }
                         let operatorWasConnected = await MainActor.run { self.operatorConnected }
-                        if operatorWasConnected {
+                        let nodeWasConnected = await MainActor.run { self.gatewayConnected }
+                        // Keep the existing socket pair only when both sessions still look connected.
+                        // If node dropped while operator stayed up, force a full reconnect so invoke paths recover.
+                        if operatorWasConnected && nodeWasConnected {
                             // Prefer keeping the connection if it's healthy; reconnect only when needed.
                             let healthy = (try? await self.operatorGateway.request(
                                 method: "health",
